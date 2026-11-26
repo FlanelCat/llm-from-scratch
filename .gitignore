@@ -222,4 +222,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Local references
 /local-references/
+/the-verdict.txt
