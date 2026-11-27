@@ -1,6 +1,6 @@
-# Based on https://github.com/rasbt/LLMs-from-scratch/blob/main/ch02/01_main-chapter-code/ch02.ipynb (chapters 2.2 to 2.6)
+# Based on https://github.com/rasbt/LLMs-from-scratch/blob/main/ch02/01_main-chapter-code/ch02.ipynb (chapters 2.2 to 2.8)
 # with verbose comments added by ChatGPT
-# 2026-11-25 - 2026-11-26
+# 2026-11-25 - 2026-11-27
 import os                                                                                   # Import the os module for interacting with the operating system
 import re                                                                                   # Import the re module for regular expressions
 
@@ -204,5 +204,47 @@ with open("the-verdict.txt", "r", encoding="utf-8") as f:                       
 dataloader = create_dataloader_v1(raw_text, batch_size=8, max_length=4, stride=4, shuffle=False)                            # Create a DataLoader for the GPTDatasetV1 with specified parameters for batch size, max length, stride, and shuffle option
 data_iterator = iter(dataloader)                                                                                            # Create an iterator for the DataLoader to iterate through the batches of data
 inputs, targets = next(data_iterator)                                                                                       # Get the first batch of data from the DataLoader iterator and unpack it into inputs and targets
-print("Inputs:\n", inputs)                                                                                                  # Print the input token tensors for the first batch
-print("\nTargets:\n", targets)                                                                                              # Print the target token tensors for the first batch
+#print("Inputs:\n", inputs)                                                                                                  # Print the input token tensors for the first batch
+#print("\nTargets:\n", targets)                                                                                              # Print the target token tensors for the first batch
+
+#
+# Create an embedding layer for the vocabulary
+#
+input_ids = torch.tensor([[2, 3, 5, 1]])                                                                                    # Create a tensor representing a batch of input token IDs
+vocabulary_size = 6                                                                                                         # Create a variable representing the size of the vocabulary
+output_dimensionality = 3                                                                                                   # Create a variable representing the desired output dimensionality for the linear layer
+torch.manual_seed(123)                                                                                                      # Set the random seed for reproducibility
+embedding_layer = torch.nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=output_dimensionality)                   # Create an embedding layer with the specified vocabulary size and output dimensionality
+#print(embedding_layer.weight)                                                                                               # Print the weights of the embedding layer
+#print(embedding_layer(input_ids))                                                                                           # Pass the input token IDs through the embedding layer and print the resulting embeddings
+
+#
+# Create an embedding layer for the GPT-2 vocabulary
+#
+vocabulary_size = 50257                                                                                                     # GPT-2 vocabulary size
+output_dimensionality = 256                                                                                                 # Output dimensionality for the linear layer
+token_embedding_layer = torch.nn.Embedding(num_embeddings=vocabulary_size, embedding_dim=output_dimensionality)             # Create an embedding layer for the GPT-2 vocabulary
+max_length = 4                                                                                                              # Maximum sequence length for the input tokens
+dataloader = create_dataloader_v1(raw_text, batch_size=8, max_length=max_length, stride=max_length, shuffle=False)          # Create a DataLoader for the GPTDatasetV1 with specified parameters for batch size, max length, stride, and shuffle option
+data_iterator = iter(dataloader)                                                                                            # Create an iterator for the DataLoader to iterate through the batches of data
+inputs, targets = next(data_iterator)                                                                                       # Get the first batch of data from the DataLoader iterator and unpack it into inputs and targets
+#print("Token IDs:\n", inputs)                                                                                               # Print the input token IDs for the first batch
+#print("\nInputs shape:", inputs.shape)                                                                                      # Print the shape of the input token IDs tensor
+
+#
+# Pass the input token IDs through the embedding layer to get the corresponding embeddings
+#
+token_embeddings = token_embedding_layer(inputs)                                                                           # Pass the input token IDs through the embedding layer to get the corresponding embeddings
+#print(token_embeddings.shape)                                                                                              # Print the shape of the token embeddings tensor, which should have the shape (batch_size, max_length, output_dimensionality)
+
+#
+# Create a positional embedding layer for the GPT-2 model
+#
+context_length = max_length                                                                                                # Set the context length to the maximum sequence length
+positional_embedding_layer = torch.nn.Embedding(num_embeddings=context_length, embedding_dim=output_dimensionality)        # Create a positional embedding layer with the specified context length and output dimensionality
+positional_embeddings = positional_embedding_layer(torch.arange(context_length))                                           # Generate positional embeddings for each position in the context length
+#print(positional_embeddings.shape)                                                                                         # Print the shape of the positional embeddings tensor, which should have the shape (context_length, output_dimensionality)
+
+
+input_embeddings = token_embeddings + positional_embeddings # Add the token embeddings and positional embeddings to get the final input embeddings for the GPT-2 model
+print(input_embeddings.shape) # Print the shape of the final input embeddings tensor, which should have the shape (batch_size, max_length, output_dimensionality
